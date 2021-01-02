@@ -3,10 +3,14 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      User.hasMany(Event);
-      User.hasMany(Work);
-      User.belongsToMany(Event, { through: UserEvent });
-      User.belongsToMany(Work, { through: UserWork });
+      User.hasOne(models.EmailTime, { foreignKey: "userId" });
+      User.hasMany(models.Event, { as: "host", foreignKey: "hostId" });
+      User.hasMany(models.Work, { foreignKey: "authorId" });
+      User.belongsToMany(models.Event, {
+        as: "participate",
+        through: "user_events",
+      });
+      User.belongsToMany(models.Work, { through: "User_Work" });
     }
   }
   User.init(
@@ -49,11 +53,11 @@ module.exports = (sequelize, DataTypes) => {
       record: DataTypes.TEXT,
       description: DataTypes.TEXT,
       emailTime: {
-        type: DataTypes.JSON,
+        type: DataTypes.TEXT,
         defaultValue: '{"time":["all"]}',
         allowNull: false,
       },
-      isDelete: {
+      isDeleted: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
         allowNull: false,

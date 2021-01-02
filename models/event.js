@@ -8,9 +8,9 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Event.hasMany(Work);
-      Event.belongsTo(User, { foreignKey: "hostId" });
-      Event.belongsToMany(User, { through: UserEvent });
+      Event.hasMany(models.Work);
+      Event.belongsTo(models.User, { foreignKey: "hostId" });
+      Event.belongsToMany(models.User, { through: "User_Event" });
     }
   }
   Event.init(
@@ -30,6 +30,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TINYINT,
         allowNull: false,
       },
+      workLimit: {
+        type: DataTypes.TINYINT,
+        allowNull: false,
+      },
       time: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -42,7 +46,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      isDelete: {
+      isDeleted: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
         allowNull: false,

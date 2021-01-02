@@ -1,47 +1,50 @@
 "use strict";
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable("Events", {
+    await queryInterface.createTable("EmailTimes", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      title: {
-        type: Sequelize.STRING(32),
-        allowNull: false,
-      },
-      description: {
-        type: Sequelize.TEXT,
-      },
-      hostId: {
+      userId: {
         type: Sequelize.TINYINT,
         allowNull: false,
       },
-      presentAttendeesLimit: {
-        type: Sequelize.TINYINT,
-        allowNull: false,
-      },
-      workLimit: {
-        type: Sequelize.TINYINT,
-        allowNull: false,
-      },
-      time: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
-      openWorksTime: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
-      location: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      isDeleted: {
+      eventCreated: {
         type: Sequelize.BOOLEAN,
-        defaultValue: false,
+        defaultValue: true,
+        allowNull: false,
+      },
+      eventUpdated: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true,
+        allowNull: false,
+      },
+      eventRemain: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true,
+        allowNull: false,
+      },
+      eventSignUp: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true,
+        allowNull: false,
+      },
+      eventAlternate: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true,
+        allowNull: false,
+      },
+      postSuccess: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true,
+        allowNull: false,
+      },
+      postComment: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true,
         allowNull: false,
       },
       createdAt: {
@@ -55,6 +58,6 @@ module.exports = {
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable("Events");
+    await queryInterface.dropTable("EmailTimes");
   },
 };

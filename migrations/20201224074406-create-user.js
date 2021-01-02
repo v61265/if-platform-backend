@@ -46,11 +46,11 @@ module.exports = {
       record: Sequelize.TEXT,
       description: Sequelize.TEXT,
       emailTime: {
-        type: Sequelize.JSON,
+        type: Sequelize.TEXT,
         defaultValue: '{ time: ["all"] }',
         allowNull: false,
       },
-      isDelete: {
+      isDeleted: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
         allowNull: false,

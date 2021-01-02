@@ -8,10 +8,10 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Work.belongsTo(User, { foreignKey: "authorId" });
-      Work.belongsTo(Event, { foreignKey: "eventId" });
-      Work.belongsToMany(User, { through: UserWork });
-      Work.belongsToMany(Tag, { through: WorkTag });
+      Work.belongsTo(models.User, { foreignKey: "authorId" });
+      Work.belongsTo(models.Event);
+      Work.belongsToMany(models.User, { through: "User_Work" });
+      Work.belongsToMany(models.Tag, { through: "Work_Tag" });
     }
   }
   Work.init(
@@ -49,7 +49,7 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: 1,
         allowNull: false,
       },
-      isDelete: {
+      isDeleted: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
         allowNull: false,
