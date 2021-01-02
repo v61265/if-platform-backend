@@ -1,35 +1,45 @@
 const bcrypt = require("bcrypt");
 const db = require("../models");
-const { User, Event, Work } = db;
+const { User, EmailTime } = db;
 const {
   usernameToJwtToken,
   JwtTokenTousername,
 } = require("../middlewares/auth");
 
 const userController = {
-  getAllUsers: async (req, res) => {
-    // 抓所有使用者
-    let users;
-    try {
-      users = await User.findAll({
-        where: {
-          isDeleted: 0,
-        },
-      });
-    } catch (err) {
-      return res.status(500).json({ ok: 0, message: err });
-    }
-    // 檢查是否為空
-    if (users.length === 0) {
-      return res.status(500).json({ ok: 0, message: "目前沒有使用者喔" });
-    }
-    // 沒有問題，顯示資料
-    return res.status(200).json({
-      ok: 1,
-      data: {
-        users,
+  getAllUsers: (req, res) => {
+    /* 篩選器施工中
+    const { _expand } = req.query;
+    let expand;
+    switch (_expand) {
+      case all: {
+        expand = { all: true };
+        break;
+      }
+		}
+		*/
+    User.findAll({
+      where: {
+        isDeleted: 0,
       },
-    });
+      include: all,
+    })
+      .then((users) => {
+        // 檢查是否為空
+        if (users.length === 0) {
+          return res.status(500).json({ ok: 0, message: "目前沒有使用者喔" });
+        }
+        // 沒有問題，顯示資料
+        return res.status(200).json({
+          ok: 1,
+          data: {
+            users,
+          },
+        });
+      })
+      .catch((err) => {
+        return res.status(500).json({ ok: 0, message: `${err}` });
+      });
   },
 
   register: (req, res) => {
@@ -51,7 +61,7 @@ const userController = {
           });
       })
       .catch((err) => {
-        return res.status(500).json({ ok: 0, message: err });
+        return res.status(500).json({ ok: 0, message: `${err}` });
       });
     // 都沒問題，創立帳號
     bcrypt.hash(password, 10, (err, hash) => {
@@ -71,7 +81,7 @@ const userController = {
           });
         })
         .catch((err) => {
-          return res.status(500).json({ ok: 0, message: err });
+          return res.status(500).json({ ok: 0, message: `${err}` });
         });
     });
   },
@@ -94,7 +104,7 @@ const userController = {
         },
       });
     } catch (err) {
-      return res.status(500).json({ ok: 0, message: err });
+      return res.status(500).json({ ok: 0, message: `${err}` });
     }
     if (!user) {
       return res.status(500).json({ ok: 0, message: "此帳號不存在" });
@@ -102,7 +112,7 @@ const userController = {
     // 確認 user 的密碼
     bcrypt.compare(password, user.password, (err, result) => {
       if (err) {
-        return res.status(500).json({ ok: 0, message: err });
+        return res.status(500).json({ ok: 0, message: `${err}` });
       }
       if (!result) {
         return res.status(500).json({ ok: 0, message: "密碼錯誤" });
@@ -126,6 +136,7 @@ const userController = {
       where: {
         username: res.locals.username,
       },
+      include: EmailTime,
     })
       .then((user) => {
         return res.status(200).json({
@@ -136,20 +147,32 @@ const userController = {
         });
       })
       .catch((err) => {
-        return res.status(500).json({ ok: 0, message: err });
+        return res.status(500).json({ ok: 0, message: `${err}` });
       });
   },
 
   updateMe: async (req, res) => {
-    const {
-      username,
-      nickname,
-      email,
-      session,
-      contact,
-      record,
-      description,
-    } = req.body;
+    //叫出使用者資料
+    let user;
+    try {
+      user = await User.findOne({
+        where: { username: res.locals.username },
+        include: EmailTime,
+      });
+      if (!user) {
+        return res.status(500).json({ ok: 0, message: "找不到該位使用者" });
+      }
+    } catch (err) {
+      return res.status(500).json({ ok: 0, message: `${err}` });
+    }
+    const username = user.username;
+    const nickname = req.body.nickname || user.nickname;
+    const email = req.body.email || user.email;
+    const session = req.body.session || user.session;
+    const contact = req.body.contact || user.contact;
+    const record = req.body.record || user.record;
+    const description = req.body.description || user.description;
+    const emailTime = req.body.emailTime || user.emailTime;
     // 檢查漏填
     if (!username || !nickname || !email || !session || !contact) {
       return res.status(500).json({
@@ -159,7 +182,16 @@ const userController = {
     }
     // 修改資料
     User.update(
-      { username, nickname, email, session, contact, record, description },
+      {
+        username,
+        nickname,
+        email,
+        session,
+        contact,
+        record,
+        description,
+        emailTime,
+      },
       { where: { username: res.locals.username } }
     )
       .then((user) => {
@@ -169,7 +201,7 @@ const userController = {
         });
       })
       .catch((err) => {
-        return res.status(500).json({ ok: 0, message: err });
+        return res.status(500).json({ ok: 0, message: `${err}` });
       });
   },
 
@@ -232,29 +264,75 @@ const userController = {
     });
   },
 
-  getOneUser: async (req, res) => {
+  getUser: (req, res) => {
+    const id = req.params.id;
+    User.findOne({
+      where: {
+        id,
+      },
+    })
+      .then((user) => {
+        // 檢查是否為空
+        if (user.length === 0) {
+          return res.status(500).json({ ok: 0, message: "沒有這位使用者喔" });
+        }
+        // 沒有問題，顯示資料
+        return res.status(200).json({
+          ok: 1,
+          data: {
+            user,
+          },
+        });
+      })
+      .catch((err) => {
+        return res.status(500).json({ ok: 0, message: `${err}` });
+      });
+  },
+
+  updateUser: async (req, res) => {
+    const id = req.params.id;
     let user;
     try {
       user = await User.findOne({
-        where: {
-          id: req.params.id,
-          isDeleted: 0,
-        },
+        where: { id },
       });
+      if (!user) {
+        return res.status(500).json({ ok: 0, message: "找不到使用者" });
+      }
     } catch (err) {
-      return res.status(500).json({ ok: 0, message: err });
+      return res.status(500).json({ ok: 0, message: `${err}` });
     }
-    // 檢查是否為空
-    if (user.length === 0) {
-      return res.status(500).json({ ok: 0, message: "使用者不存在" });
-    }
-    // 沒有問題，顯示資料
-    return res.status(200).json({
-      ok: 1,
-      data: {
-        user,
+    const username = user.username;
+    const nickname = req.body.nickname || user.nickname;
+    const email = req.body.email || user.email;
+    const session = req.body.session || user.session;
+    const contact = req.body.contact || user.contact;
+    const record = req.body.record || user.record;
+    const description = req.body.description || user.description;
+    const role = req.body.role || user.role;
+    // 修改資料
+    User.update(
+      {
+        username,
+        nickname,
+        email,
+        session,
+        contact,
+        record,
+        description,
+        role,
       },
-    });
+      { where: { id } }
+    )
+      .then((user) => {
+        return res.status(200).json({
+          ok: 1,
+          message: "更新成功",
+        });
+      })
+      .catch((err) => {
+        return res.status(500).json({ ok: 0, message: `${err}` });
+      });
   },
 };
 

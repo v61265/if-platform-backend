@@ -14,5 +14,7 @@ userRouter.patch(
   checkAuth("isLogin"),
   userController.updatePassword
 );
+userRouter.get("/:id", checkAuth("isLogin"), userController.getUser);
+userRouter.patch("/:id", checkAuth("isAdmin"), userController.updateUser);
 
 module.exports = userRouter;

@@ -42,15 +42,17 @@ const checkAuth = (auth) => {
       case "isLogin": {
         res.locals.username = username;
         next();
+        break;
       }
       case "isAdmin": {
-        if (user.role !== admin) {
+        if (user.role !== "admin") {
           return res
             .status(500)
             .json({ ok: 0, message: "你沒有權限瀏覽此頁面" });
         }
         res.locals.username = username;
         next();
+        break;
       }
     }
   };
