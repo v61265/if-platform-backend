@@ -7,7 +7,7 @@ userRouter.get("/", checkAuth("isLogin"), userController.getAllUsers);
 userRouter.post("/register", userController.register);
 userRouter.post("/login", userController.login);
 userRouter.post("/logout", checkAuth("isLogin"), userController.login);
-userRouter.get("/getMe", checkAuth("isLogin"), userController.getMe);
+userRouter.get("/getMe", checkAuth("isLogin"), userController.getUser);
 userRouter.patch("/updateMe", checkAuth("isLogin"), userController.updateMe);
 userRouter.patch(
   "/updatePassword",

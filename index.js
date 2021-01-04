@@ -18,10 +18,16 @@ app.use(
   })
 );
 
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}!`);
-});
-
 app.use("/v1/users", userRoutes);
 //app.use("/v1/users", eventRoutes);
 //app.use("/v1/events", workrRoutes);
+
+app.use((err, req, res, next) => {
+  console.log("error middleware");
+  console.log("err", err);
+  return res.status(500).json({ ok: 0, message: err.message });
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening at http://localhost:${port}!`);
+});

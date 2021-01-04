@@ -1,13 +1,10 @@
 const bcrypt = require("bcrypt");
 const db = require("../models");
 const { User, EmailTime } = db;
-const {
-  usernameToJwtToken,
-  JwtTokenTousername,
-} = require("../middlewares/auth");
+const { usernameToJwtToken } = require("../middlewares/auth");
 
 const userController = {
-  getAllUsers: (req, res) => {
+  getAllUsers: (req, res, next) => {
     /* 篩選器施工中
     const { _expand } = req.query;
     let expand;
@@ -22,12 +19,12 @@ const userController = {
       where: {
         isDeleted: 0,
       },
-      include: all,
+      include: { all: true },
     })
       .then((users) => {
         // 檢查是否為空
         if (users.length === 0) {
-          return res.status(500).json({ ok: 0, message: "目前沒有使用者喔" });
+          next(new Error("目前沒有使用者喔"));
         }
         // 沒有問題，顯示資料
         return res.status(200).json({
@@ -38,31 +35,44 @@ const userController = {
         });
       })
       .catch((err) => {
-        return res.status(500).json({ ok: 0, message: `${err}` });
+        next(new Error(err));
       });
   },
 
-  register: (req, res) => {
-    const { username, password, nickname, email, session, contact } = req.body;
+  register: (req, res, next) => {
+    console.log("start register");
+    const {
+      username,
+      password,
+      passwordAgain,
+      nickname,
+      email,
+      session,
+    } = req.body;
     // 檢查漏填
-    if (!username || !password || !nickname || !email || !session || !contact) {
-      return res.status(500).json({
-        ok: 0,
-        message: "有東西漏填了",
-      });
+    if (
+      !username ||
+      !password ||
+      !passwordAgain ||
+      !nickname ||
+      !email ||
+      !session
+    ) {
+      next(new Error("有東西漏填囉"));
     }
     // 檢查帳號存在
     User.findOne({ where: { username } })
       .then((user) => {
-        if (user)
-          return res.status(500).json({
-            ok: 0,
-            message: "帳號已經存在",
-          });
+        if (user) next(new Error("帳號已經存在"));
       })
       .catch((err) => {
-        return res.status(500).json({ ok: 0, message: `${err}` });
+        next(new Error(err));
       });
+    // 檢查兩次密碼是否一致
+    if (password !== passwordAgain) {
+      console.log("密碼不一致");
+      next(new Error("密碼輸入不一致"));
+    }
     // 都沒問題，創立帳號
     bcrypt.hash(password, 10, (err, hash) => {
       User.create({
@@ -71,7 +81,6 @@ const userController = {
         nickname,
         email,
         session,
-        contact,
       })
         .then(() => {
           // 沒問題，直接發 token
@@ -81,19 +90,16 @@ const userController = {
           });
         })
         .catch((err) => {
-          return res.status(500).json({ ok: 0, message: `${err}` });
+          next(new Error(err));
         });
     });
   },
 
-  login: async (req, res) => {
+  login: async (req, res, next) => {
     const { username, password } = req.body;
     // 檢查空值
     if (!username || !password) {
-      return res.status(500).json({
-        ok: 0,
-        message: "有東西漏填了",
-      });
+      next(new Error("有東西漏填囉"));
     }
     // 撈出 user 的資料
     let user;
@@ -104,18 +110,18 @@ const userController = {
         },
       });
     } catch (err) {
-      return res.status(500).json({ ok: 0, message: `${err}` });
+      next(new Error(err));
     }
     if (!user) {
-      return res.status(500).json({ ok: 0, message: "此帳號不存在" });
+      next(new Error("此帳號不存在"));
     }
     // 確認 user 的密碼
     bcrypt.compare(password, user.password, (err, result) => {
       if (err) {
-        return res.status(500).json({ ok: 0, message: `${err}` });
+        next(new Error(err));
       }
       if (!result) {
-        return res.status(500).json({ ok: 0, message: "密碼錯誤" });
+        next(new Error("密碼錯誤"));
       }
       return res.status(200).json({
         ok: 1,
@@ -131,14 +137,31 @@ const userController = {
     });
   },
 
-  getMe: (req, res) => {
-    User.findOne({
-      where: {
-        username: res.locals.username,
-      },
-      include: EmailTime,
-    })
+  getUser: (req, res, next) => {
+    const path = req.path;
+    if (path === "/getMe") {
+      action = {
+        where: {
+          username: res.locals.username,
+        },
+        include: EmailTime,
+      };
+    } else {
+      action = {
+        where: {
+          id: req.params.id,
+        },
+        include: EmailTime,
+      };
+    }
+    User.findOne(action)
       .then((user) => {
+        console.log(user);
+        // 檢查是否為空
+        if (!user) {
+          next(new Error("找不到該使用者"));
+        }
+        // 沒有問題，顯示資料
         return res.status(200).json({
           ok: 1,
           data: {
@@ -147,11 +170,11 @@ const userController = {
         });
       })
       .catch((err) => {
-        return res.status(500).json({ ok: 0, message: `${err}` });
+        next(new Error(err));
       });
   },
 
-  updateMe: async (req, res) => {
+  updateMe: async (req, res, next) => {
     //叫出使用者資料
     let user;
     try {
@@ -160,10 +183,10 @@ const userController = {
         include: EmailTime,
       });
       if (!user) {
-        return res.status(500).json({ ok: 0, message: "找不到該位使用者" });
+        next(new Error("找不到這個使用者"));
       }
     } catch (err) {
-      return res.status(500).json({ ok: 0, message: `${err}` });
+      next(new Error(err));
     }
     const username = user.username;
     const nickname = req.body.nickname || user.nickname;
@@ -174,11 +197,8 @@ const userController = {
     const description = req.body.description || user.description;
     const emailTime = req.body.emailTime || user.emailTime;
     // 檢查漏填
-    if (!username || !nickname || !email || !session || !contact) {
-      return res.status(500).json({
-        ok: 0,
-        message: "有東西漏填了",
-      });
+    if (!username || !nickname || !email || !session) {
+      next(new Error("有東西漏填了"));
     }
     // 修改資料
     User.update(
@@ -201,17 +221,14 @@ const userController = {
         });
       })
       .catch((err) => {
-        return res.status(500).json({ ok: 0, message: `${err}` });
+        next(new Error(err));
       });
   },
 
-  updatePassword: async (req, res) => {
+  updatePassword: async (req, res, next) => {
     const { oldPassword, newPassword, againPassword } = req.body;
     if (!oldPassword || !newPassword || !againPassword) {
-      return res.status(500).json({
-        ok: 0,
-        message: "有東西漏填了",
-      });
+      next(new Error("有東西漏填囉"));
     }
     // 拿到使用者資料 -> 比對密碼
     let user;
@@ -222,31 +239,24 @@ const userController = {
         },
       });
     } catch (err) {
-      return res.status(500).json({ ok: 0, message: `get user error ${err}` });
+      next(new Error(err));
     }
     bcrypt.compare(oldPassword, user.password, (err, result) => {
       if (err) {
-        return res
-          .status(500)
-          .json({ ok: 0, message: `get hash error ${err}` });
+        next(new Error(err));
       }
       if (!result) {
-        return res.status(500).json({ ok: 0, message: "密碼錯誤" });
+        next(new Error("密碼錯誤"));
       }
     });
     // 檢查是否相符
     if (newPassword !== againPassword) {
-      return res.status(500).json({
-        ok: 0,
-        message: "新密碼輸入不一致",
-      });
+      next(new Error("兩次密碼不一致"));
     }
     // 沒有問題，開始 update
     bcrypt.hash(newPassword, 10, (err, hash) => {
       if (err) {
-        return res
-          .status(500)
-          .json({ ok: 0, message: `set hash error ${err}` });
+        next(new Error(err));
       }
       User.update(
         { password: hash },
@@ -259,37 +269,12 @@ const userController = {
           });
         })
         .catch((err) => {
-          return res.status(500).json({ ok: 0, message: `更新失敗 ${err}` });
+          next(new Error(err));
         });
     });
   },
 
-  getUser: (req, res) => {
-    const id = req.params.id;
-    User.findOne({
-      where: {
-        id,
-      },
-    })
-      .then((user) => {
-        // 檢查是否為空
-        if (user.length === 0) {
-          return res.status(500).json({ ok: 0, message: "沒有這位使用者喔" });
-        }
-        // 沒有問題，顯示資料
-        return res.status(200).json({
-          ok: 1,
-          data: {
-            user,
-          },
-        });
-      })
-      .catch((err) => {
-        return res.status(500).json({ ok: 0, message: `${err}` });
-      });
-  },
-
-  updateUser: async (req, res) => {
+  updateUser: async (req, res, next) => {
     const id = req.params.id;
     let user;
     try {
@@ -297,10 +282,10 @@ const userController = {
         where: { id },
       });
       if (!user) {
-        return res.status(500).json({ ok: 0, message: "找不到使用者" });
+        next(new Error("找不到這個使用者"));
       }
     } catch (err) {
-      return res.status(500).json({ ok: 0, message: `${err}` });
+      next(new Error(err));
     }
     const username = user.username;
     const nickname = req.body.nickname || user.nickname;
@@ -310,6 +295,10 @@ const userController = {
     const record = req.body.record || user.record;
     const description = req.body.description || user.description;
     const role = req.body.role || user.role;
+    // 檢查漏填
+    if (!username || !nickname || !email || !session) {
+      next(new Error("有東西漏填了"));
+    }
     // 修改資料
     User.update(
       {
@@ -324,14 +313,14 @@ const userController = {
       },
       { where: { id } }
     )
-      .then((user) => {
+      .then(() => {
         return res.status(200).json({
           ok: 1,
           message: "更新成功",
         });
       })
       .catch((err) => {
-        return res.status(500).json({ ok: 0, message: `${err}` });
+        next(new Error(err));
       });
   },
 };
