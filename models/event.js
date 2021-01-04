@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
       description: {
         type: DataTypes.TEXT,
       },
-      photo: {
+      picture: {
         type: DataTypes.STRING,
         defaultValue: "https://ppt.cc/fvNpnx@.jpg",
         allowNull: false,

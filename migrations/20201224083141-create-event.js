@@ -15,7 +15,7 @@ module.exports = {
       description: {
         type: Sequelize.TEXT,
       },
-      photo: {
+      picture: {
         type: Sequelize.STRING,
         defaultValue: "https://ppt.cc/fvNpnx@.jpg",
         allowNull: false,
