@@ -22,6 +22,11 @@ module.exports = (sequelize, DataTypes) => {
       description: {
         type: DataTypes.TEXT,
       },
+      photo: {
+        type: DataTypes.STRING,
+        defaultValue: "https://ppt.cc/fvNpnx@.jpg",
+        allowNull: false,
+      },
       hostId: {
         type: DataTypes.TINYINT,
         allowNull: false,

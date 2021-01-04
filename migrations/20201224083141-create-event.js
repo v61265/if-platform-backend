@@ -15,6 +15,11 @@ module.exports = {
       description: {
         type: Sequelize.TEXT,
       },
+      photo: {
+        type: Sequelize.STRING,
+        defaultValue: "https://ppt.cc/fvNpnx@.jpg",
+        allowNull: false,
+      },
       hostId: {
         type: Sequelize.TINYINT,
         allowNull: false,

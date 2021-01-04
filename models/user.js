@@ -37,7 +37,6 @@ module.exports = (sequelize, DataTypes) => {
       },
       contact: {
         type: DataTypes.STRING,
-        allowNull: false,
       },
       portrait: {
         type: DataTypes.STRING,
@@ -52,11 +51,6 @@ module.exports = (sequelize, DataTypes) => {
       },
       record: DataTypes.TEXT,
       description: DataTypes.TEXT,
-      emailTime: {
-        type: DataTypes.TEXT,
-        defaultValue: '{"time":["all"]}',
-        allowNull: false,
-      },
       isDeleted: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,

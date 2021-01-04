@@ -30,7 +30,7 @@ module.exports = {
       },
       contact: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       portrait: {
         type: Sequelize.STRING,
@@ -45,11 +45,6 @@ module.exports = {
       },
       record: Sequelize.TEXT,
       description: Sequelize.TEXT,
-      emailTime: {
-        type: Sequelize.TEXT,
-        defaultValue: '{ time: ["all"] }',
-        allowNull: false,
-      },
       isDeleted: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
