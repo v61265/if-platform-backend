@@ -1,4 +1,5 @@
 node_modules/
 conn.php
 .DS_STORE
+.env
 config.json
