@@ -19,7 +19,8 @@ const userController = {
       where: {
         isDeleted: 0,
       },
-      include: { all: true },
+      //include: { all: true },
+      order: [["session", "DESC"]],
     })
       .then((users) => {
         // 檢查是否為空
@@ -130,16 +131,9 @@ const userController = {
     });
   },
 
-  logout: (req, res) => {
-    return res.status(200).json({
-      ok: 1,
-      message: "登出成功",
-    });
-  },
-
   getUser: (req, res, next) => {
     const path = req.path;
-    if (path === "/getMe") {
+    if (path === "/me") {
       action = {
         where: {
           username: res.locals.username,
