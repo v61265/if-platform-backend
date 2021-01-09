@@ -6,8 +6,49 @@ const checkValidTime = (time) => {
   return reg.test(time);
 };
 
+const okMessage = (message) => {
+  return {
+    ok: 1,
+    message,
+  };
+};
+
+const checkEventInput = (input) => {
+  const {
+    title,
+    presentAttendeesLimit,
+    workLimit,
+    time,
+    openWorksTime,
+    location,
+  } = input;
+  // 檢查漏填
+  if (
+    !title ||
+    !presentAttendeesLimit ||
+    !workLimit ||
+    !time ||
+    !openWorksTime ||
+    !location
+  ) {
+    return "有東西漏填囉";
+  }
+  // 檢查格式
+  if (
+    isNaN(parseInt(presentAttendeesLimit)) ||
+    isNaN(parseInt(presentAttendeesLimit)) ||
+    !checkValidTime(time) ||
+    !checkValidTime(openWorksTime)
+  ) {
+    return "格式不正確";
+  }
+  return false;
+};
+
 const eventController = {
   addEvent: async (req, res, next) => {
+    const check = checkEventInput(req.body);
+    if (check) return next(new Error(check));
     const {
       title,
       description,
@@ -20,26 +61,6 @@ const eventController = {
       referance,
       location,
     } = req.body;
-    // 檢查漏填
-    if (
-      !title ||
-      !presentAttendeesLimit ||
-      !workLimit ||
-      !time ||
-      !openWorksTime ||
-      !location
-    ) {
-      next(new Error("有東西漏填囉"));
-    }
-    // 檢查格式
-    if (
-      isNaN(parseInt(presentAttendeesLimit)) ||
-      isNaN(parseInt(presentAttendeesLimit)) ||
-      !checkValidTime(time) ||
-      !checkValidTime(openWorksTime)
-    ) {
-      next(new Error("格式不正確"));
-    }
     // 創建活動
     try {
       const result = await Event.create({
@@ -59,15 +80,6 @@ const eventController = {
       if (!result) return next(new Error("活動建立失敗"));
       // 沒問題，傳新的 id 回去
       const lastEvent = await Event.findOne({ order: [["id", "DESC"]] });
-      // 把創建者加入現場參加者名單
-      /*
-      const create_result = User_Event.create({
-        userId: res.locals.userId,
-        eventId: lastEvent.id,
-        type: 'present'
-      })
-      if (!result) return next(new Error("出了點錯，你沒有參加到活動。請手動報名。"));
-      */
       return res.status(200).json({
         ok: 1,
         id: lastEvent.id,
@@ -89,24 +101,15 @@ const eventController = {
         },
         include: Work,
       });
-      if (!event) {
-        next(new Error("找不到該活動"));
-      }
-      console.log(event);
-      if (event.Works[0]) {
-        next(new Error("請先確定底下沒有作品，再刪除活動"));
-      }
+      if (!event) next(new Error("找不到該活動"));
+      if (event.Works[0]) next(new Error("請先確定底下沒有作品，再刪除活動"));
+      // 沒問題，來刪除
+      Event.update({ isDeleted: true }, { where: { id } }).then(() => {
+        return res.status(200).json(okMessage("刪除成功"));
+      });
     } catch (err) {
       next(new Error(err));
     }
-    // 沒問題，來刪除
-    Event.update({ isDeleted: true }, { where: { id } })
-      .then(() => {
-        return res.status(200).json({
-          ok: 1,
-        });
-      })
-      .catch((err) => next(new Error(err)));
   },
 
   getEvents: (req, res, next) => {
@@ -122,24 +125,10 @@ const eventController = {
     } = req.query;
     // 選擇 expand 哪些項目
     let expand = [];
-    if (_expand_all)
-      expand.push({
-        all: true,
-      });
-    if (_expand_host)
-      expand.push({
-        model: User,
-        as: "host",
-      });
-    if (_expand_participants)
-      expand.push({
-        model: User,
-        as: "participant",
-      });
-    if (_expand_works)
-      expand.push({
-        model: Work,
-      });
+    if (_expand_all) expand.push({ all: true });
+    if (_expand_host) expand.push({ model: User, as: "host" });
+    if (_expand_participants) expand.push({ model: User, as: "participant" });
+    if (_expand_works) expand.push({ model: Work });
     // 開始找
     Event.findAll({
       where: {
@@ -152,15 +141,11 @@ const eventController = {
     })
       .then((events) => {
         // 檢查是否為空
-        if (events.length === 0) {
-          next(new Error("目前沒有活動喔"));
-        }
+        if (events.length === 0) return next(new Error("目前沒有活動喔"));
         // 沒有問題，顯示資料
         return res.status(200).json({
           ok: 1,
-          data: {
-            events,
-          },
+          events,
         });
       })
       .catch((err) => {
@@ -170,7 +155,7 @@ const eventController = {
 
   getEvent: (req, res, next) => {
     const id = req.params.id;
-    Event.findAll({
+    Event.findOne({
       where: {
         id,
         isDeleted: 0,
@@ -179,15 +164,11 @@ const eventController = {
     })
       .then((event) => {
         // 檢查是否為空
-        if (event.length === 0) {
-          next(new Error("找不到該活動喔"));
-        }
+        if (!event) return next(new Error("找不到該活動喔"));
         // 沒有問題，顯示資料
         return res.status(200).json({
           ok: 1,
-          data: {
-            event,
-          },
+          event,
         });
       })
       .catch((err) => {
@@ -196,6 +177,9 @@ const eventController = {
   },
 
   updateEvent: (req, res, next) => {
+    // 檢查漏填 & 格式
+    const check = checkEventInput(req.body);
+    if (check) return next(new Error(check));
     const id = req.params.id;
     const {
       title,
@@ -209,27 +193,6 @@ const eventController = {
       meetingLink,
       referance,
     } = req.body;
-    // 檢查漏填
-    if (
-      !title ||
-      !presentAttendeesLimit ||
-      !workLimit ||
-      !time ||
-      !openWorksTime ||
-      !location
-    ) {
-      next(new Error("有東西漏填了"));
-    }
-    console.log(time);
-    // 檢查格式
-    if (
-      isNaN(parseInt(presentAttendeesLimit)) ||
-      isNaN(parseInt(presentAttendeesLimit)) ||
-      !checkValidTime(time) ||
-      !checkValidTime(openWorksTime)
-    ) {
-      next(new Error("格式不正確"));
-    }
     // 修改資料
     Event.update(
       {
@@ -247,12 +210,8 @@ const eventController = {
       { where: { id, isDeleted: 0 } }
     )
       .then((event) => {
-        console.log(event);
         if (!event[0]) return next(new Error("找不到該活動"));
-        return res.status(200).json({
-          ok: 1,
-          message: "更新成功",
-        });
+        return res.status(200).json(okMessage("更新成功"));
       })
       .catch((err) => {
         next(new Error(err));
@@ -266,9 +225,7 @@ const eventController = {
     try {
       // 先抓到 event 人數限制
       const limit = await Event.findOne({
-        where: {
-          id,
-        },
+        where: { id },
         attributes: ["presentAttendeesLimit"],
       }).then((data) => data.presentAttendeesLimit);
       if (!limit) return next(new Error("該活動不存在喔"));
@@ -302,6 +259,7 @@ const eventController = {
   },
 
   signUpEvent: async (req, res, next) => {
+    console.log(okMessage);
     const eventId = req.params.id;
     const userId = res.locals.userId;
     const { type } = req.body;
@@ -322,15 +280,11 @@ const eventController = {
         where: { userId, eventId },
       });
       if (record) return next(new Error("你已經報名過該活動囉"));
-      console.log("start create!!!");
       User_Event.create({ userId, eventId, type }).then((result) => {
         if (!result) {
           return next(new Error("報名失敗，請再試一次"));
         }
-        return res.status(200).json({
-          ok: 1,
-          message: "報名成功!",
-        });
+        return res.status(200).json(okMessage("報名成功"));
       });
     } catch (err) {
       next(new Error(err));
@@ -356,10 +310,7 @@ const eventController = {
         if (!result) {
           return next(new Error("取消失敗，請再試一次"));
         }
-        return res.status(200).json({
-          ok: 1,
-          message: "取消報名成功!",
-        });
+        return res.status(200).json(okMessage("取消報名成功"));
       });
     } catch (err) {
       next(new Error(err));
