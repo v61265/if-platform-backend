@@ -10,8 +10,8 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       Work.belongsTo(models.User, { foreignKey: "authorId" });
       Work.belongsTo(models.Event);
-      Work.belongsToMany(models.User, { through: "User_Work" });
-      Work.belongsToMany(models.Tag, { through: "Work_Tag" });
+      Work.belongsToMany(models.User, { through: "User_Works" });
+      Work.belongsToMany(models.Tag, { through: "Work_Tags" });
     }
   }
   Work.init(

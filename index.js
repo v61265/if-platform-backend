@@ -5,6 +5,7 @@ const port = 3001;
 const bodyParser = require("body-parser");
 const session = require("express-session");
 const userRoutes = require("./routes/userRoutes");
+const eventRoutes = require("./routes/eventRoutes");
 
 var cors = require("cors");
 
@@ -23,7 +24,7 @@ app.use(
 );
 
 app.use("/v1/users", userRoutes);
-//app.use("/v1/users", eventRoutes);
+app.use("/v1/events", eventRoutes);
 //app.use("/v1/events", workrRoutes);
 
 app.use((err, req, res, next) => {

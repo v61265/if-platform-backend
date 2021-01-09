@@ -40,6 +40,7 @@ const checkAuth = (auth) => {
     }
     switch (auth) {
       case "isLogin": {
+        res.locals.userId = user.id;
         res.locals.username = username;
         next();
         break;
@@ -50,6 +51,7 @@ const checkAuth = (auth) => {
             .status(500)
             .json({ ok: 0, message: "你沒有權限瀏覽此頁面" });
         }
+        res.locals.userId = user.id;
         res.locals.username = username;
         next();
         break;
