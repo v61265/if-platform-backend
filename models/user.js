@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
         as: "participate",
         through: "user_events",
       });
-      User.belongsToMany(models.Work, { through: "User_Work" });
+      User.belongsToMany(models.Work, { through: "User_Works" });
     }
   }
   User.init(

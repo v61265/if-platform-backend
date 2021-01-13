@@ -9,8 +9,11 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       Event.hasMany(models.Work);
-      Event.belongsTo(models.User, { foreignKey: "hostId" });
-      Event.belongsToMany(models.User, { through: "User_Event" });
+      Event.belongsTo(models.User, { as: "host", foreignKey: "hostId" });
+      Event.belongsToMany(models.User, {
+        as: "participant",
+        through: "User_Events",
+      });
     }
   }
   Event.init(
@@ -50,6 +53,12 @@ module.exports = (sequelize, DataTypes) => {
       location: {
         type: DataTypes.STRING,
         allowNull: false,
+      },
+      meetingLink: {
+        type: DataTypes.STRING,
+      },
+      referance: {
+        type: DataTypes.STRING,
       },
       isDeleted: {
         type: DataTypes.BOOLEAN,

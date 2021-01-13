@@ -44,6 +44,12 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      meetingLink: {
+        type: Sequelize.STRING,
+      },
+      referance: {
+        type: Sequelize.STRING,
+      },
       isDeleted: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
