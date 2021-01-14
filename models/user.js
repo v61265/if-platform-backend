@@ -5,12 +5,15 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       User.hasOne(models.EmailTime, { foreignKey: "userId" });
       User.hasMany(models.Event, { as: "host", foreignKey: "hostId" });
-      User.hasMany(models.Work, { foreignKey: "authorId" });
+      User.hasMany(models.Work, { as: "works", foreignKey: "authorId" });
       User.belongsToMany(models.Event, {
         as: "participate",
         through: "user_events",
       });
-      User.belongsToMany(models.Work, { through: "User_Works" });
+      User.belongsToMany(models.Work, {
+        as: "readRecord",
+        through: "User_Works",
+      });
     }
   }
   User.init(
