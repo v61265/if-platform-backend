@@ -8,10 +8,13 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Work.belongsTo(models.User, { foreignKey: "authorId" });
+      Work.belongsTo(models.User, { as: "author", foreignKey: "authorId" });
       Work.belongsTo(models.Event);
-      Work.belongsToMany(models.User, { through: "User_Works" });
-      Work.belongsToMany(models.Tag, { through: "Work_Tags" });
+      Work.belongsToMany(models.User, { as: "reader", through: "User_Works" });
+      Work.belongsToMany(models.Tag, {
+        foreignKey: "workId",
+        through: "Work_Tag",
+      });
     }
   }
   Work.init(
@@ -43,7 +46,7 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: false,
         allowNull: false,
       },
-      content: DataTypes.TEXT,
+      content: DataTypes.JSON,
       version: {
         type: DataTypes.INTEGER,
         defaultValue: 1,

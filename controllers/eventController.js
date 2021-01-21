@@ -92,9 +92,8 @@ const eventController = {
   deleteEvent: async (req, res, next) => {
     const id = req.params.id;
     // 確認 event 下方有沒有 works
-    let event;
     try {
-      event = await Event.findOne({
+      const event = await Event.findOne({
         where: {
           id,
           isDeleted: 0,
