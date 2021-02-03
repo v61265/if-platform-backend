@@ -214,10 +214,12 @@ const workController = {
   },
 
   getWorks: (req, res, next) => {
-    //const eventId = req.query.eventId || { [Op.ne]: 0 };
-    //const authorId = req.query.authorId || { [Op.ne]: 0 };
+    const eventId = req.query.eventId || { [Op.ne]: 0 };
+    const authorId = req.query.authorId || { [Op.ne]: 0 };
     const selector = getFilterByQuery(req.query, {
       isDeleted: 0,
+      authorId,
+      eventId,
     });
     // 開始找
     Work.findAll(selector)

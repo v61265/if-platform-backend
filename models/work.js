@@ -9,8 +9,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       Work.belongsTo(models.User, { as: "author", foreignKey: "authorId" });
-      Work.belongsTo(models.Event);
-      Work.belongsToMany(models.User, { as: "reader", through: "User_Works" });
+      Work.belongsTo(models.Event, { foreignKey: "eventId" });
+      Work.belongsToMany(models.User, { as: "reader", through: "User_Work" });
       Work.belongsToMany(models.Tag, {
         foreignKey: "workId",
         through: "Work_Tag",
