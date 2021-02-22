@@ -2,22 +2,43 @@ const express = require("express");
 const workRouter = express.Router();
 const workController = require("../controllers/workController");
 const { checkAuth } = require("../middlewares/auth");
+const { catchAsyncError } = require("../middlewares/error");
 
 // 作品本身
-workRouter.get("/", checkAuth("isLogin"), workController.getWorks);
+workRouter.get(
+  "/",
+  catchAsyncError(checkAuth("isLogin")),
+  catchAsyncError(workController.getWorks)
+);
 workRouter.get(
   "/:id",
-  checkAuth("isLogin"),
-  checkAuth("isReader"),
-  workController.getWork
+  catchAsyncError(checkAuth("isLogin")),
+  catchAsyncError(checkAuth("isReader")),
+  catchAsyncError(workController.getWork)
 );
-workRouter.post("/add", checkAuth("isLogin"), workController.addWork);
-workRouter.get("/delete/:id", checkAuth("isAuthor"), workController.deleteWork);
-workRouter.patch("/:id", checkAuth("isAuthor"), workController.updateWork);
+workRouter.post(
+  "/add",
+  catchAsyncError(checkAuth("isLogin")),
+  catchAsyncError(workController.addWork)
+);
+workRouter.get(
+  "/delete/:id",
+  catchAsyncError(checkAuth("isAuthor")),
+  catchAsyncError(workController.deleteWork)
+);
+workRouter.patch(
+  "/:id",
+  catchAsyncError(checkAuth("isAuthor")),
+  catchAsyncError(workController.updateWork)
+);
 
 // 閱讀權限和紀錄
 
 // tags 相關
-workRouter.get("/tags/search", checkAuth("isLogin"), workController.searchTags);
+workRouter.get(
+  "/tags/search",
+  catchAsyncError(checkAuth("isLogin")),
+  catchAsyncError(workController.searchTags)
+);
 
 module.exports = workRouter;

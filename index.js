@@ -4,6 +4,7 @@ const app = express();
 const port = 3001;
 const bodyParser = require("body-parser");
 const session = require("express-session");
+const { handleError } = require("./middlewares/error");
 const userRoutes = require("./routes/userRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const workRoutes = require("./routes/workRoutes");
@@ -28,11 +29,7 @@ app.use("/v1/users", userRoutes);
 app.use("/v1/events", eventRoutes);
 app.use("/v1/works", workRoutes);
 
-app.use((err, req, res, next) => {
-  console.log("error middleware");
-  console.log("err", err);
-  return res.status(500).json({ ok: 0, message: err.message });
-});
+app.use(handleError);
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}!`);

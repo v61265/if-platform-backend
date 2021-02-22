@@ -2,33 +2,50 @@ const express = require("express");
 const eventRouter = express.Router();
 const eventController = require("../controllers/eventController");
 const { checkAuth } = require("../middlewares/auth");
+const { catchAsyncError } = require("../middlewares/error");
 
 // 活動本身相關
-eventRouter.post("/add", checkAuth("isAdmin"), eventController.addEvent);
+eventRouter.post(
+  "/add",
+  catchAsyncError(checkAuth("isAdmin")),
+  catchAsyncError(eventController.addEvent)
+);
 eventRouter.get(
   "/delete/:id",
-  checkAuth("isAdmin"),
-  eventController.deleteEvent
+  catchAsyncError(checkAuth("isAdmin")),
+  catchAsyncError(eventController.deleteEvent)
 );
-eventRouter.get("/", checkAuth("isLogin"), eventController.getEvents);
-eventRouter.get("/:id", checkAuth("isLogin"), eventController.getEvent);
-eventRouter.patch("/:id", checkAuth("isAdmin"), eventController.updateEvent);
+eventRouter.get(
+  "/",
+  catchAsyncError(checkAuth("isLogin")),
+  catchAsyncError(eventController.getEvents)
+);
+eventRouter.get(
+  "/:id",
+  catchAsyncError(checkAuth("isLogin")),
+  catchAsyncError(eventController.getEvent)
+);
+eventRouter.patch(
+  "/:id",
+  catchAsyncError(checkAuth("isAdmin")),
+  catchAsyncError(eventController.updateEvent)
+);
 
 // 使用者參加活動相關
 eventRouter.get(
   "/participants/:id",
-  checkAuth("isLogin"),
-  eventController.getParticipants
+  catchAsyncError(checkAuth("isLogin")),
+  catchAsyncError(eventController.getParticipants)
 );
 eventRouter.post(
   "/sign-up/:id",
-  checkAuth("isLogin"),
-  eventController.signUpEvent
+  catchAsyncError(checkAuth("isLogin")),
+  catchAsyncError(eventController.signUpEvent)
 );
 eventRouter.get(
   "/cancel-sign-up/:id",
-  checkAuth("isLogin"),
-  eventController.cancelSignUpEvent
+  catchAsyncError(checkAuth("isLogin")),
+  catchAsyncError(eventController.cancelSignUpEvent)
 );
 
 module.exports = eventRouter;
