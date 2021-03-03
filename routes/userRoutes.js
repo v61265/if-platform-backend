@@ -2,24 +2,49 @@ const express = require("express");
 const userRouter = express.Router();
 const userController = require("../controllers/userController");
 const { checkAuth } = require("../middlewares/auth");
+const { catchAsyncError } = require("../middlewares/error");
 
-userRouter.get("/", checkAuth("isLogin"), userController.getAllUsers);
-userRouter.post("/register", userController.register);
-userRouter.post("/login", userController.login);
-userRouter.get("/me", checkAuth("isLogin"), userController.getUser);
-userRouter.patch("/me", checkAuth("isLogin"), userController.updateMe);
+userRouter.get(
+  "/",
+  catchAsyncError(checkAuth("isLogin")),
+  catchAsyncError(userController.getAllUsers)
+);
+userRouter.post("/register", catchAsyncError(userController.register));
+userRouter.post("/login", catchAsyncError(userController.login));
+userRouter.get(
+  "/me",
+  catchAsyncError(checkAuth("isLogin")),
+  catchAsyncError(userController.getUser)
+);
+userRouter.patch(
+  "/me",
+  catchAsyncError(checkAuth("isLogin")),
+  catchAsyncError(userController.updateMe)
+);
 userRouter.patch(
   "/myEmailTime",
-  checkAuth("isLogin"),
-  userController.updateMyEmailTime
+  catchAsyncError(checkAuth("isLogin")),
+  catchAsyncError(userController.updateMyEmailTime)
 );
 userRouter.patch(
   "/updatePassword",
-  checkAuth("isLogin"),
-  userController.updatePassword
+  catchAsyncError(checkAuth("isLogin")),
+  catchAsyncError(userController.updatePassword)
 );
-userRouter.get("/search", checkAuth("isLogin"), userController.searchUser);
-userRouter.get("/:username", checkAuth("isLogin"), userController.getUser);
-userRouter.patch("/:username", checkAuth("isAdmin"), userController.updateUser);
+userRouter.get(
+  "/search",
+  catchAsyncError(checkAuth("isLogin")),
+  catchAsyncError(userController.searchUser)
+);
+userRouter.get(
+  "/:username",
+  catchAsyncError(checkAuth("isLogin")),
+  catchAsyncError(userController.getUser)
+);
+userRouter.patch(
+  "/:username",
+  catchAsyncError(checkAuth("isAdmin")),
+  catchAsyncError(userController.updateUser)
+);
 
 module.exports = userRouter;

@@ -35,7 +35,7 @@ module.exports = {
         defaultValue: false,
         allowNull: false,
       },
-      content: Sequelize.TEXT,
+      content: Sequelize.JSON,
       version: {
         type: Sequelize.INTEGER,
         defaultValue: 1,
