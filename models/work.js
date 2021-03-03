@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "workId",
         through: "Work_Tag",
       });
+      Work.hasMany(models.Comment, { foreignKey: "workId" });
     }
   }
   Work.init(
