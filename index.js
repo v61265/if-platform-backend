@@ -1,7 +1,7 @@
 const express = require("express");
 
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
 const bodyParser = require("body-parser");
 const session = require("express-session");
 const { handleError } = require("./middlewares/error");
