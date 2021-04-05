@@ -6,6 +6,10 @@ module.exports = (sequelize, DataTypes) => {
       User.hasOne(models.EmailTime, { foreignKey: "userId" });
       User.hasMany(models.Event, { as: "host", foreignKey: "hostId" });
       User.hasMany(models.Work, { as: "works", foreignKey: "authorId" });
+      User.hasMany(models.Comment, {
+        as: "commentBy",
+        foreignKey: "reviewerId",
+      });
       User.belongsToMany(models.Event, {
         as: "participate",
         through: "user_events",

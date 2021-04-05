@@ -1,5 +1,5 @@
 const db = require("../models");
-const { Event, Work, User, Tag, Work_Tag } = db;
+const { Event, Work, User, Tag, Work_Tag, Comment } = db;
 const sequelize = require("sequelize");
 const Op = sequelize.Op;
 const {
@@ -35,6 +35,7 @@ const getFilterByQuery = (queries, condition) => {
     _expand_readers,
     _expand_event,
     _expand_tags,
+    _expand_comments,
     _expand_all,
   } = queries;
   // 選擇 expand 哪些項目
@@ -43,6 +44,7 @@ const getFilterByQuery = (queries, condition) => {
   if (_expand_author) expand.push({ model: User, as: "author" });
   if (_expand_readers) expand.push({ model: User, as: "reader" });
   if (_expand_event) expand.push({ model: Event });
+  if (_expand_comments) expand.push({ model: Comment });
   if (_expand_tags) expand.push({ model: Tag });
   return {
     where: condition,
